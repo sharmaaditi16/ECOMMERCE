@@ -43,7 +43,7 @@ class LoginForm(FlaskForm):
     password= PasswordField(validators=[InputRequired(), Length(min=4, max=20)], render_kw={"placeholder":"Password"})
     submit = SubmitField("Login")
 
-def get_products_details():
+def get_products_list():#get_products_list
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -119,9 +119,18 @@ def register():
 def products():
     # my_array = ["apple", "banana", "cherry"]
     # return render_template('index.html', my_array=my_array)
-    products = get_products_details()
+    products = get_products_list()
     return render_template('product.html', product_list = products) 
 
+@app.route('/products/<int:id>', methods=['GET'])
+def get_product_by_id(id):
+    conn = get_db_connection()  
+    cursor = conn.cursor(dictionary=True)  
+    
+    query = "SELECT p.id AS product_id, p.name AS product_name, p.price, p.image, c.id AS category_id, c.name AS category_name, b.id AS brand_id, b.name AS brand_name FROM products p INNER JOIN categories c ON p.category_id = c.id INNER JOIN brands b ON p.brand_id = b.id WHERE p.id = %s"
+    cursor.execute(query,(id,))
+    product = cursor.fetchone() 
+    return render_template('product-detail.html', product=product)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=3000, debug=True)
